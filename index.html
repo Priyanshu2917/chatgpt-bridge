@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Local AI</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #0b0b0f;
+            color: #f5f5f7;
+            font-family:
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+        }
+
+        .app {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ================================
+           HEADER
+        ================================= */
+
+        header {
+            height: 64px;
+            padding: 0 22px;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            border-bottom: 1px solid #22232a;
+
+            background: rgba(11, 11, 15, 0.88);
+            backdrop-filter: blur(18px);
+
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .brand-icon {
+            font-size: 20px;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+
+            color: #9697a1;
+            font-size: 13px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+
+            background: #42d392;
+        }
+
+        /* ================================
+           CHAT
+        ================================= */
+
+        #chat {
+            flex: 1;
+
+            width: 100%;
+            max-width: 900px;
+
+            margin: 0 auto;
+
+            padding: 35px 20px 150px;
+        }
+
+        .welcome {
+            min-height: 60vh;
+
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+
+            text-align: center;
+        }
+
+        .welcome-icon {
+            font-size: 42px;
+            margin-bottom: 20px;
+        }
+
+        .welcome h1 {
+            font-size: clamp(30px, 6vw, 48px);
+            letter-spacing: -1.5px;
+            margin-bottom: 12px;
+        }
+
+        .welcome p {
+            color: #9697a1;
+            line-height: 1.6;
+            max-width: 500px;
+        }
+
+        /* ================================
+           MESSAGE
+        ================================= */
+
+        .message {
+            display: flex;
+            margin: 24px 0;
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message.assistant {
+            justify-content: flex-start;
+        }
+
+        .bubble {
+            max-width: 82%;
+
+            padding: 13px 16px;
+
+            border-radius: 18px;
+
+            line-height: 1.65;
+
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+
+        .user .bubble {
+            background: #2f3038;
+        }
+
+        .assistant .bubble {
+            background: transparent;
+            padding-left: 0;
+        }
+
+        /* ================================
+           COMPOSER
+        ================================= */
+
+        .composer-area {
+            position: fixed;
+
+            left: 0;
+            right: 0;
+            bottom: 0;
+
+            display: flex;
+            justify-content: center;
+
+            padding: 18px 20px 22px;
+
+            background:
+                linear-gradient(
+                    transparent,
+                    #0b0b0f 35%
+                );
+
+            z-index: 20;
+        }
+
+        .composer {
+            width: 100%;
+            max-width: 900px;
+
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
+
+            padding: 10px;
+
+            background: #17181e;
+
+            border: 1px solid #292a32;
+            border-radius: 22px;
+
+            box-shadow:
+                0 12px 40px rgba(0, 0, 0, 0.35);
+        }
+
+        #prompt {
+            flex: 1;
+
+            min-height: 26px;
+            max-height: 180px;
+
+            resize: none;
+
+            border: none;
+            outline: none;
+
+            background: transparent;
+
+            color: #ffffff;
+
+            font: inherit;
+            line-height: 1.5;
+
+            padding: 8px 10px;
+        }
+
+        #prompt::placeholder {
+            color: #777983;
+        }
+
+        #send {
+            flex-shrink: 0;
+
+            width: 42px;
+            height: 42px;
+
+            border: none;
+            border-radius: 50%;
+
+            background: #f5f5f7;
+            color: #111111;
+
+            cursor: pointer;
+
+            font-size: 19px;
+            font-weight: 600;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            transition:
+                transform 0.15s ease,
+                opacity 0.15s ease;
+        }
+
+        #send:hover {
+            transform: scale(1.05);
+        }
+
+        #send:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ================================
+           MOBILE
+        ================================= */
+
+        @media (max-width: 600px) {
+
+            header {
+                padding: 0 15px;
+            }
+
+            #chat {
+                padding-left: 14px;
+                padding-right: 14px;
+            }
+
+            .bubble {
+                max-width: 90%;
+            }
+
+            .composer-area {
+                padding-left: 10px;
+                padding-right: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="app">
+
+    <!-- ==================================
+         HEADER
+    =================================== -->
+
+    <header>
+
+        <div class="brand">
+            <span class="brand-icon">✦</span>
+            <span>Local AI</span>
+        </div>
+
+        <div class="status">
+            <span class="status-dot"></span>
+            <span>Local</span>
+        </div>
+
+    </header>
+
+
+    <!-- ==================================
+         CHAT AREA
+    =================================== -->
+
+    <main id="chat">
+
+        <section
+            class="welcome"
+            id="welcome"
+        >
+
+            <div class="welcome-icon">
+                ✦
+            </div>
+
+            <h1>
+                How can I help?
+            </h1>
+
+            <p>
+                A local AI interface powered by
+                your own browser bridge.
+            </p>
+
+        </section>
+
+    </main>
+
+
+    <!-- ==================================
+         MESSAGE COMPOSER
+    =================================== -->
+
+    <div class="composer-area">
+
+        <form
+            class="composer"
+            id="chat-form"
+        >
+
+            <textarea
+                id="prompt"
+                name="prompt"
+                rows="1"
+                placeholder="Message your AI..."
+                autocomplete="off"
+            ></textarea>
+
+            <button
+                id="send"
+                type="submit"
+                aria-label="Send message"
+            >
+                ↑
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<script>
+
+    // ============================================
+    // ELEMENT REFERENCES
+    // ============================================
+
+    const form =
+        document.getElementById("chat-form");
+
+    const promptInput =
+        document.getElementById("prompt");
+
+    const sendButton =
+        document.getElementById("send");
+
+    const chat =
+        document.getElementById("chat");
+
+    const welcome =
+        document.getElementById("welcome");
+
+
+    // ============================================
+    // AUTO-RESIZE TEXTAREA
+    // ============================================
+
+    promptInput.addEventListener(
+        "input",
+        () => {
+
+            promptInput.style.height = "auto";
+
+            promptInput.style.height =
+                Math.min(
+                    promptInput.scrollHeight,
+                    180
+                ) + "px";
+        }
+    );
+
+
+    // ============================================
+    // ADD MESSAGE TO UI
+    // ============================================
+
+    function addMessage(text, role) {
+
+        if (welcome) {
+            welcome.remove();
+        }
+
+        const message =
+            document.createElement("div");
+
+        message.className =
+            `message ${role}`;
+
+
+        const bubble =
+            document.createElement("div");
+
+        bubble.className =
+            "bubble";
+
+        bubble.textContent =
+            text;
+
+
+        message.appendChild(bubble);
+
+        chat.appendChild(message);
+
+
+        // Scroll to latest message
+
+        chat.scrollTo({
+            top: chat.scrollHeight,
+            behavior: "smooth"
+        });
+
+
+        return bubble;
+    }
+
+
+     // ============================================
+// SEND MESSAGE TO LOCAL SERVER
+// ============================================
+
+form.addEventListener(
+    "submit",
+    async (event) => {
+
+        event.preventDefault();
+
+
+        const message =
+            promptInput.value.trim();
+
+
+        if (!message) {
+            return;
+        }
+
+
+        // ----------------------------------------
+        // SHOW USER MESSAGE
+        // ----------------------------------------
+
+        addMessage(
+            message,
+            "user"
+        );
+
+
+        // ----------------------------------------
+        // CLEAR INPUT
+        // ----------------------------------------
+
+        promptInput.value = "";
+
+        promptInput.style.height = "auto";
+
+
+        // ----------------------------------------
+        // DISABLE SEND BUTTON
+        // ----------------------------------------
+
+        sendButton.disabled = true;
+
+
+        // ----------------------------------------
+        // SHOW WAITING MESSAGE
+        // ----------------------------------------
+
+        const assistantBubble =
+            addMessage(
+                "Thinking...",
+                "assistant"
+            );
+
+
+            try {
+
+            // ------------------------------------
+            // GET CURRENT OUTPUT STATE
+            // ------------------------------------
+
+            const beforeResponse = await fetch(
+                `/output?t=${Date.now()}`,
+                {
+                    cache: "no-store"
+                }
+            );
+
+            if (!beforeResponse.ok) {
+                throw new Error(
+                    "Could not read /output."
+                );
+            }
+
+            const beforeData =
+                await beforeResponse.json();
+
+            const beforeModifiedTime =
+                Number(beforeData.modified_time) || 0;
+
+            const beforeResponseText =
+                String(beforeData.response || "");
+
+
+            // ------------------------------------
+            // SEND PROMPT
+            // ------------------------------------
+
+            const inputResponse = await fetch(
+                "/input",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        message: message
+                    })
+                }
+            );
+
+            if (!inputResponse.ok) {
+
+                const errorData =
+                    await inputResponse.json();
+
+                throw new Error(
+                    errorData.detail ||
+                    "Could not send prompt."
+                );
+            }
+
+
+            // ------------------------------------
+            // WAIT FOR A NEW OUTPUT VERSION
+            // ------------------------------------
+
+            const startTime =
+                Date.now();
+
+            const timeout =
+                120000;
+
+            const pollInterval =
+                200;
+
+
+            while (
+                Date.now() - startTime <
+                timeout
+            ) {
+
+                await new Promise(
+                    resolve =>
+                        setTimeout(
+                            resolve,
+                            pollInterval
+                        )
+                );
+
+
+                const response = await fetch(
+                    `/output?t=${Date.now()}`,
+                    {
+                        cache: "no-store"
+                    }
+                );
+
+                if (!response.ok) {
+                    continue;
+                }
+
+
+                const data =
+                    await response.json();
+
+
+                const currentModifiedTime =
+                    Number(data.modified_time) || 0;
+
+
+                const currentResponse =
+                    String(data.response || "");
+
+                if (
+                    currentModifiedTime <=
+                    beforeModifiedTime ||
+                    currentResponse ===
+                    beforeResponseText
+                ) {
+                    continue;
+                }
+
+
+                const newResponse =
+                    currentResponse.trim();
+
+
+                if (!newResponse) {
+                    continue;
+                }
+
+
+                // --------------------------------
+                // SHOW NEW RESPONSE
+                // --------------------------------
+
+                assistantBubble.textContent =
+                    newResponse;
+
+                sendButton.disabled =
+                    false;
+
+                return;
+            }
+
+
+            // ------------------------------------
+            // TIMEOUT
+            // ------------------------------------
+
+            assistantBubble.textContent =
+                "Response timed out. Please try again.";
+
+            sendButton.disabled = false;
+
+
+        } catch (error) {
+
+            console.error(error);
+
+            assistantBubble.textContent =
+                "Connection error: " +
+                error.message;
+
+            sendButton.disabled = false;
+        }
+    }
+);
+
+
+    // ============================================
+    // ENTER = SEND
+    // SHIFT + ENTER = NEW LINE
+    // ============================================
+
+    promptInput.addEventListener(
+        "keydown",
+        (event) => {
+
+            if (
+                event.key === "Enter" &&
+                !event.shiftKey
+            ) {
+
+                event.preventDefault();
+
+                form.requestSubmit();
+            }
+        }
+    );
+
+</script>
+
+</body>
+</html>
