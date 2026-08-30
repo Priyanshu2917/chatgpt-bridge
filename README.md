@@ -51,7 +51,7 @@ Communication between the API server and the browser bridge happens through two 
 ### 1. Clone or Download
 
 ```powershell
-git clone https://github.com/your-username/chatgpt-bridge.git
+git clone https://github.com/Priyanshu2917/chatgpt-bridge.git
 cd chatgpt-bridge
 ```
 
