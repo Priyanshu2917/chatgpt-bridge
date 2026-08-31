@@ -1,4 +1,4 @@
-$ProjectPath = "C:\Users\lpust\chatgpt-bridge"
+$ProjectPath = "C:\Users\chatgpt-bridge"
 
 Write-Host ""
 Write-Host "========================================"
