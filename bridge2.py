@@ -26,12 +26,7 @@ TIMEOUT = 30000
 # ============================================================
 
 def find_first(page, selectors):
-    """
-    दिए गए selectors को एक-एक करके try करता है.
-
-    जो पहला visible element मिलेगा,
-    उसे return करेगा.
-    """
+    
 
     for selector in selectors:
         try:
@@ -52,11 +47,7 @@ def find_first(page, selectors):
 # ============================================================
 
 def save_output(text):
-    """
-    हर नया response पुराने output को replace करेगा.
-
-    यानी output.txt हमेशा केवल latest response रखेगी.
-    """
+   
 
     OUTPUT_FILE.write_text(
         text,
