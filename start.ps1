@@ -1,4 +1,4 @@
-$ProjectPath = "C:\Users\chatgpt-bridge"
+$ProjectPath = $PSScriptRoot
 
 Write-Host ""
 Write-Host "========================================"
