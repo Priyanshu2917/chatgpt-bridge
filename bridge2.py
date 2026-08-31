@@ -9,10 +9,10 @@ import time
 # CONFIGURATION
 # ============================================================
 
-# जिस localhost page पर तुम्हारा demo चल रहा है
+ 
 URL = "https://chatgpt.com/"
 
-# इसी folder में output.txt बनेगी
+ 
 BASE_DIR = Path(__file__).resolve().parent
 OUTPUT_FILE = BASE_DIR / "output.txt"
 INPUT_FILE = BASE_DIR / "input.txt"
